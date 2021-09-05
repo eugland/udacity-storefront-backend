@@ -1,68 +1,35 @@
-import Client from "../database"
+import Client from '../database';
+import crud from '../crud/common';
 
 export type Product = {
-  id: number;
-  name: string;
-  price: number;
-}
+    id: number;
+    name: string;
+    price: number;
+};
 
 export class ProductStore {
-  async index (): Promise<Product[]> {
-    try {
-      const conn = await Client.connect()
-      const sql = "SELECT * FROM products"
+    public index;
+    public show;
 
-      const result = await conn.query(sql)
-
-      conn.release()
-
-      return result.rows
-    } catch (err) {
-      throw new Error(`Could not get products. Error: ${err}`)
+    constructor() {
+        const table = 'products';
+        this.index = crud.index<Product>(table);
+        this.show = crud.show<Product>(table);
     }
-  }
 
-  async show (id: string): Promise<Product> {
-    try {
-      const sql = "SELECT * FROM products WHERE id=($1)"
-      const conn = await Client.connect()
-      const {rows} = await conn.query(sql, [id])
+    async create(m: Product): Promise<Product> {
+        try {
+            const sql =
+                'INSERT INTO products ( name, price) VALUES($1, $2) RETURNING *';
+            const conn = await Client.connect();
 
-      conn.release()
+            const result = await conn.query(sql, [m.name, m.price]);
 
-      return rows[0]
-    } catch (err) {
-      throw new Error(`Could not find product ${id}. Error: ${err}`)
+            const row = result.rows[0];
+            conn.release();
+            return row;
+        } catch (err) {
+            throw new Error(`Could not add a new row. Error: ${err}`);
+        }
     }
-  }
-
-  async add (product: Product): Promise<Product> {
-    const {name, price} = product
-
-    try {
-      const sql = "INSERT INTO products (name, price) VALUES($1, $2) RETURNING *"
-      const conn = await Client.connect()
-      const {rows} = await conn.query(sql, [name, price])
-
-      conn.release()
-
-      return rows[0]
-    } catch (err) {
-      throw new Error(`Could not add new product ${name}. Error: ${err}`)
-    }
-  }
-
-  async delete (id: string): Promise<Product> {
-    try {
-      const sql = "DELETE FROM products WHERE id=($1)"
-      const conn = await Client.connect()
-      const {rows} = await conn.query(sql, [id])
-
-      conn.release()
-
-      return rows[0]
-    } catch (err) {
-      throw new Error(`Could not delete product ${id}. Error: ${err}`)
-    }
-  }
 }

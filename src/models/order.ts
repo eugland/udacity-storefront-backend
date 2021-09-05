@@ -1,70 +1,79 @@
-import Client from "../database"
+import Client from '../database';
+import crud from '../crud/common';
 
 export type Order = {
-  id: number;
-  products: number[];
-  quantity: number[];
-  userId: number;
-  status: boolean;
-}
+    id: number;
+    status: string;
+    user_id: number;
+};
+
+export type OrderProduct = {
+    id: number;
+    quantity: number;
+    order_id: number;
+    product_id: number;
+};
 
 export class OrderStore {
-  async index (): Promise<Order[]> {
-    try {
-      const conn = await Client.connect()
-      const sql = "SELECT * FROM orders"
+    public index;
+    public show;
 
-      const result = await conn.query(sql)
-
-      conn.release()
-
-      return result.rows
-    } catch (err) {
-      throw new Error(`Could not get orders. Error: ${err}`)
+    constructor() {
+        const table = 'orders';
+        this.index = crud.index<Order>(table);
+        this.show = crud.show<Order>(table);
     }
-  }
 
-  async show (id: string): Promise<Order> {
-    try {
-      const sql = "SELECT * FROM orders WHERE id=($1)"
-      const conn = await Client.connect()
-      const {rows} = await conn.query(sql, [id])
-
-      conn.release()
-
-      return rows[0]
-    } catch (err) {
-      throw new Error(`Could not find order ${id}. Error: ${err}`)
+    async create(user_id: number): Promise<Order> {
+        try {
+            const sql = 'INSERT INTO orders (user_id) VALUES($1) RETURNING *';
+            const conn = await Client.connect();
+            const result = await conn.query(sql, [user_id]);
+            const row = result.rows[0];
+            conn.release();
+            return row;
+        } catch (err) {
+            throw new Error(`Could not add a new row. Error: ${err}`);
+        }
     }
-  }
 
-  async add (order: Order): Promise<Order> {
-    const {products, quantity, status, userId} = order
+    async addProduct(
+        quantity: number,
+        order_id: number,
+        product_id: number
+    ): Promise<OrderProduct> {
+        try {
+            const sql =
+                'INSERT INTO order_products (quantity, order_id, product_id) VALUES($1, $2, $3) RETURNING *';
+            const conn = await Client.connect();
 
-    try {
-      const sql = "INSERT INTO orders (products, quantities, userid, status) VALUES($1, $2, $3, $4) RETURNING *"
-      const conn = await Client.connect()
-      const {rows} = await conn.query(sql, [products, quantity, status, userId])
+            const result = await conn.query(sql, [
+                quantity,
+                order_id,
+                product_id,
+            ]);
 
-      conn.release()
-
-      return rows[0]
-    } catch (err) {
-      throw new Error(`Could not add new order for user ${userId}. Error: ${err}`)
+            const row = result.rows[0];
+            conn.release();
+            return row;
+        } catch (err) {
+            throw new Error(
+                `Could not add product ${product_id} to order ${order_id}: ${err}`
+            );
+        }
     }
-  }
 
-  async delete (id: string): Promise<Order> {
-    try {
-      const sql = "DELETE FROM orders WHERE id=($1)"
-      const conn = await Client.connect()
-      const {rows} = await conn.query(sql, [id])
+    async ordersByUser(user_id: number): Promise<{ id: number }[]> {
+        try {
+            const conn = await Client.connect();
+            const sql =
+                'SELECT orders.id FROM users JOIN orders ON users.id = orders.user_id WHERE users.id = ($1)';
 
-      conn.release()
-
-      return rows[0]
-    } catch (err) {
-      throw new Error(`Could not delete order ${id}. Error: ${err}`)
+            const result = await conn.query(sql, [user_id]);
+            conn.release();
+            return result.rows;
+        } catch (err) {
+            throw new Error(`unable get users with orders: ${err}`);
+        }
     }
-  }
 }
