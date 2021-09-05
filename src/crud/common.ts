@@ -47,7 +47,7 @@ const update = <T>(table: string) => {
     return async function (
         id: string,
         columns: string[],
-        values: any[]
+        values: unknown[]
     ): Promise<T> {
         let statement = '';
         let i = 1;

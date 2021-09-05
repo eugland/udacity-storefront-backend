@@ -5,6 +5,7 @@ const verifyAuthToken = (req: Request, res: Response, next: Function): void => {
     try {
         const authorizationHeader = req.headers.authorization || '';
         const token = authorizationHeader.split(' ')[1];
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         jwt.verify(token, process.env.TOKEN_SECRET!);
         next();
     } catch (error) {

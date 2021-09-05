@@ -2,15 +2,15 @@
     "dev": {
         "driver": "pg",
         "host": "127.0.0.1",
-        "database": "full_stack_js",
-        "user": {"ENV": "POSTGRES_USER"},
-        "password": {"ENV": "POSTGRES_PASSWORD"}
+        "database": "dev",
+        "user": "eu",
+        "password": "123"
     },
     "test": {
         "driver": "pg",
         "host": "127.0.0.1",
         "database": "test",
-        "user": {"ENV": "POSTGRES_USER"},
-        "password": {"ENV": "POSTGRES_PASSWORD"}
+        "user": "eu",
+        "password": "123"
     }
 }

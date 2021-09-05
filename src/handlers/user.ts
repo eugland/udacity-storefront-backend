@@ -27,11 +27,12 @@ const user_routes = (app: express.Application): void => {
             lastname: req.body.lastname,
             password: req.body.password,
         };
-        
+
         try {
             const created = await store.create(user);
             const token = jwt.sign(
                 { user: created },
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 process.env.TOKEN_SECRET!
             );
             console.log(token);

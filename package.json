@@ -4,13 +4,14 @@
   "description": "",
   "main": "server.ts",
   "scripts": {
-    "prettify": "prettier --config .prettierrc 'src/**/*.ts' --write",
+    "prettify": "prettier --config .prettierrc \"src/**/*.ts\" --write",
     "lint": "npm run prettify && npx eslint . --ext .ts",
     "start": "nodemon src/server.ts",
-    "jasmine": "jasmine",
-    "watch": "tsc-watch --esModuleInterop src/server.ts --outDir ./dist --onSuccess 'node ./dist/server.js'",
+    "prod": "tsc && node ./dist/server.js",
+    "jasmine": "jasmine ",
+    "watch": "tsc-watch --esModuleInterop src/server.ts --outDir ./dist --onSuccess \"node ./dist/server.js\"",
     "drop": "db-migrate db:drop test",
-    "test": "npm run drop && ENV=test db-migrate db:create test && db-migrate --env test up && jasmine-ts && db-migrate db:drop test",
+    "test": "npm run drop && db-migrate db:create test && db-migrate --env test up && jasmine && db-migrate db:drop test",
     "tsc": "tsc"
   },
   "author": "Udacity",
